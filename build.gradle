@@ -1,0 +1,30 @@
+apply {
+    plugin("java")
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    mavenLocal()
+}
+
+group = "org.rabbitcontrol"
+version = "1.0-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation ("io.github.rabbitcontrol:rcp:0.+")
+
+    testCompile "junit:junit:4.12"
+}
+
+task runServer(type: JavaExec) {
+    classpath sourceSets.main.runtimeClasspath
+    main = "io.github.rabbitcontrol.RCPServerTest"
+    if(System.getProperty("exec.args") != null) {
+        args System.getProperty("exec.args").split()
+    }
+}
