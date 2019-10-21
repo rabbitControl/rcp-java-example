@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation ("io.github.rabbitcontrol:rcp:0.+")
+    implementation ("io.github.rabbitcontrol:rcp:0.2.0")
 
     testCompile "junit:junit:4.12"
 }
