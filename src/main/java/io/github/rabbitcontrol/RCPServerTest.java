@@ -110,6 +110,7 @@ public class RCPServerTest implements Update, Init {
 
         // create rabbit
         rabbit = new RCPServer(transporter);
+        rabbit.setApplicationId("java-test-server");
 
         rabbit.setUpdateListener(this);
         rabbit.setInitListener(this);
