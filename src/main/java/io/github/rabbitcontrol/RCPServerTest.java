@@ -87,10 +87,7 @@ public class RCPServerTest implements Update, Init {
         try {
             new RCPServerTest(expose_method_name, port);
         }
-        catch (final RCPException _e) {
-            _e.printStackTrace();
-        }
-        catch (RCPParameterException _e) {
+        catch (final RCPException | RCPParameterException _e) {
             _e.printStackTrace();
         }
 
@@ -134,7 +131,8 @@ public class RCPServerTest implements Update, Init {
             }
         } else {
             System.out.println("no expose method defined. using exposeParameterInGroups");
-            exposeParameterInGroups();
+            //exposeParameterInGroups();
+            exposeColorParameters();
         }
 
         rabbit.update();
@@ -191,6 +189,10 @@ public class RCPServerTest implements Update, Init {
 
     private void exposeParameterInGroups() throws RCPParameterException {
         GroupExpose.exposeParameterInGroups(rabbit);
+    }
+
+    private void exposeColorParameters() throws RCPParameterException {
+        ColorParameterExpose.exposeColorParameters(rabbit);
     }
 
     //------------------------------------------------------------
