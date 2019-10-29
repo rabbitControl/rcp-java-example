@@ -1,3 +1,8 @@
 #!/bin/bash
 
-./gradlew run -Dexec.args="-c exposeSingleFloat"
+if [ $# -eq 0 ]
+then
+  ./gradlew run -Dexec.args="-c exposeSingleFloat"
+else
+  ./gradlew run -Dexec.args="$*"
+fi
