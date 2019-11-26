@@ -195,6 +195,14 @@ public class RCPServerTest implements Update, Init {
         ColorParameterExpose.exposeColorParameters(rabbit);
     }
 
+    private void exposeOrdered() throws RCPParameterException {
+        OrderedParameterExpose.exposeOrdered(rabbit);
+    }
+
+    private void exposeOrderedGroups() throws RCPParameterException {
+        OrderedParameterExpose.exposeOrderedinGroups(rabbit);
+    }
+
     //------------------------------------------------------------
     // interface Update
     @Override
