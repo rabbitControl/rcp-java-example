@@ -203,6 +203,10 @@ public class RCPServerTest implements Update, Init {
         OrderedParameterExpose.exposeOrderedinGroups(rabbit);
     }
 
+    private void exposeIntParameterRandom() throws RCPParameterException {
+        ParameterAutoChange.exposeIntParameterRandom(rabbit);
+    }
+
     //------------------------------------------------------------
     // interface Update
     @Override
