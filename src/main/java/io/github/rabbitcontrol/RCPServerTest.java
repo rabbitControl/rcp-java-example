@@ -156,7 +156,11 @@ public class RCPServerTest implements Update, Init {
     }
 
     private void exposeRange() throws RCPParameterException {
-        NumberParameterExpose.exposeRange(rabbit);
+        RangeParameterExpose.exposeRange(rabbit);
+    }
+
+    private void exposeRangeOutOfBounds() throws RCPParameterException {
+        RangeParameterExpose.exposeRangeOutOfBounds(rabbit);
     }
 
     private void exposeArray() throws RCPParameterException {
@@ -177,6 +181,10 @@ public class RCPServerTest implements Update, Init {
 
     private void exposeSingleFloat() throws RCPParameterException, RCPException {
         NumberParameterExpose.exposeSingleFloat(rabbit);
+    }
+
+    private void exposeSingleFloat64() throws RCPParameterException, RCPException {
+        NumberParameterExpose.exposeSingleFloat64(rabbit);
     }
 
     private void exposeFloatTest() throws RCPParameterException {
@@ -206,6 +214,41 @@ public class RCPServerTest implements Update, Init {
     private void exposeIntParameterRandom() throws RCPParameterException {
         ParameterAutoChange.exposeIntParameterRandom(rabbit);
     }
+
+    private void exposeOutOfBoundFloat() throws RCPParameterException {
+        NumberParameterExpose.exposeOutOfBoundFloat(rabbit);
+    }
+
+    private void exposeVectorParameterOutOfBounds() throws RCPParameterException {
+        VectorParameterExpose.exposeVectorParameterOutOfBounds(rabbit);
+    }
+
+    private void exposeByte() throws RCPParameterException {
+        NumberParameterExpose.exposeByte(rabbit);
+    }
+
+    private void exposeInt16() throws RCPParameterException {
+        NumberParameterExpose.exposeInt16(rabbit);
+    }
+
+    private void exposeInt32() throws RCPParameterException {
+        NumberParameterExpose.exposeInt32(rabbit);
+    }
+
+    private void exportForCImpl() throws RCPParameterException {
+
+        System.out.println("export for C");
+        NumberParameterExpose.exposeForCImpl(rabbit);
+    }
+
+    private void exposeParameterChangeLabel() throws RCPParameterException {
+
+        ParameterAutoChange.exposeParameterChangeLabel(rabbit);
+    }
+
+
+
+
 
     //------------------------------------------------------------
     // interface Update

@@ -4,13 +4,30 @@ import org.rabbitcontrol.rcp.RCPServer;
 import org.rabbitcontrol.rcp.model.exceptions.RCPException;
 import org.rabbitcontrol.rcp.model.exceptions.RCPParameterException;
 import org.rabbitcontrol.rcp.model.parameter.*;
-import org.rabbitcontrol.rcp.model.types.Range;
 
 public class NumberParameterExpose {
 
+    public static void exposeByte(final RCPServer rabbit) throws RCPParameterException {
+
+        final Int8Parameter parameter = rabbit.createInt8Parameter("byte number");
+        parameter.setValue((byte)-2);
+    }
+
+    public static void exposeInt16(final RCPServer rabbit) throws RCPParameterException {
+
+        final Int16Parameter parameter = rabbit.createInt16Parameter("short number");
+        parameter.setValue((short)-2);
+    }
+
+    public static void exposeInt32(final RCPServer rabbit) throws RCPParameterException {
+
+        final Int32Parameter parameter = rabbit.createInt32Parameter("int number");
+        parameter.setValue(-2);
+    }
+
     public static void exposeLong(final RCPServer rabbit) throws RCPParameterException {
 
-        final Int64Parameter parameter = rabbit.createInt64Parameter("a long number");
+        final Int64Parameter parameter = rabbit.createInt64Parameter("long number");
         parameter.setValue(10L);
     }
 
@@ -24,6 +41,20 @@ public class NumberParameterExpose {
             parameter.setValue(123.F);
             parameter.getTypeDefinition().setMinimum(0.F);
             parameter.getTypeDefinition().setMaximum(200.F);
+        }
+    }
+
+    public static void exposeSingleFloat64(final RCPServer rabbit) throws RCPParameterException,
+                                                                    RCPException {
+
+        final GroupParameter group = rabbit.createGroupParameter("float group");
+
+        for (int i = 0; i <1; i++) {
+
+            final Float64Parameter parameter = rabbit.createFloat64Parameter("FLOAT", group);
+            parameter.setValue(123.D);
+            parameter.getTypeDefinition().setMinimum(0.D);
+            parameter.getTypeDefinition().setMaximum(200.D);
         }
     }
 
@@ -45,21 +76,33 @@ public class NumberParameterExpose {
         parameter.setUnit("MM");
     }
 
-    public static void exposeRange(final RCPServer rabbit) throws RCPParameterException {
-
-        final RangeParameter<Byte> parameter = rabbit.createRangeParameter("range",
-                                                                                Byte.class);
-
-        parameter.setValue(new Range<Byte>((byte)2, (byte)4));
-        parameter.getTypeDefinition().setDefault(new Range<Byte>((byte)1, (byte)10));
-        parameter.getRangeDefinition().getElementType().setMinimum((byte)0);
-        parameter.getRangeDefinition().getElementType().setMaximum((byte)20);
-    }
-
     public static void exposeFaultyFloat(final RCPServer rabbit) throws RCPParameterException {
 
         final Float32Parameter parameter = rabbit.createFloat32Parameter("float 0-0");
         parameter.setMinimum(0.F);
         parameter.setMaximum(0.F);
+    }
+
+    public static void exposeOutOfBoundFloat(final RCPServer rabbit) throws RCPParameterException {
+
+        final Float32Parameter parameter = rabbit.createFloat32Parameter("float 0-0");
+        parameter.setMinimum(0.F);
+        parameter.setMaximum(1.F);
+        parameter.setValue(-2.F);
+    }
+
+
+    public static void exposeForCImpl(final RCPServer rabbit) throws RCPParameterException {
+
+        final BooleanParameter bool_parameter = rabbit.createBooleanParameter("bool");
+
+        final Int8Parameter int8_parameter = rabbit.createInt8Parameter("int 8");
+        int8_parameter.setValue((byte)8);
+
+        final Int32Parameter int_parameter = rabbit.createInt32Parameter("int 1");
+        int_parameter.setMinimum(0);
+        int_parameter.setMaximum(100);
+        int_parameter.setValue(10);
+
     }
 }
