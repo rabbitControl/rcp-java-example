@@ -1,7 +1,13 @@
 # rcp-java-example
 examples for rcp-java
 
-to run the test-server use script `startserver.sh` to or use one of these:
+to run the test-server use `startserver.sh` 
+```
+./startserver.sh -h
+```
+
+ 
+or use one of these:
 
 show help
 ```
