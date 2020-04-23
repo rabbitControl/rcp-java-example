@@ -104,6 +104,7 @@ public class RCPServerTest implements Update, Init {
                                                                         RCPParameterException {
 
         final WebsocketServerTransporterNetty transporter = new WebsocketServerTransporterNetty();
+//        final TcpServerTransporterNetty transporter = new TcpServerTransporterNetty();
 
         // create rabbit
         rabbit = new RCPServer(transporter);
@@ -130,10 +131,13 @@ public class RCPServerTest implements Update, Init {
                 System.exit(1);
             }
         } else {
-            System.out.println("no expose method defined. using exposeParameterInGroups");
-            //exposeParameterInGroups();
-            exposeColorParameters();
+            System.out.println("no expose method defined - use some hardcoded values");
+            exposeParameterInGroups();
+//            exposeColorParameters();
+//            exposeIntParameterRandom();
+//            exposeParameterChangeLabel();
         }
+
 
         rabbit.update();
     }

@@ -15,10 +15,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.*;
 
-public class RCPClientTest extends JFrame implements Add, Remove, Update {
+public class RCPClientTest extends JFrame implements Add, Remove, Update, ValueUpdate {
 
     public static final String HOST = "localhost";
-
     public static final int PORT = 10000;
 
     //------------------------------------------------------------
@@ -50,18 +49,22 @@ public class RCPClientTest extends JFrame implements Add, Remove, Update {
 
         // create serializer and transporter
         final WebsocketClientTransporter transporter = new WebsocketClientTransporter();
+//        final TcpClientTransporterNetty transporter = new TcpClientTransporterNetty();
 
 
         // create rcp client
         rcp = new RCPClient(transporter);
+        rcp.setApplicationId("Test Java Client");
+
         rcp.setUpdateListener(this);
+        rcp.setValueUpdateListener(this);
         rcp.setAddListener(this);
         rcp.setRemoveListener(this);
 
         transporter.connect(HOST, PORT);
 
         // init
-        rcp.initialize();
+//        rcp.initialize();
     }
 
     private void setupFrame() {
@@ -174,7 +177,15 @@ public class RCPClientTest extends JFrame implements Add, Remove, Update {
 
             componentMap.put(_parameter.getId(), panel);
 
-            _parameter.addValueUpdateListener(_parameter1 -> text_field.setText(_parameter1.getStringValue()));
+            _parameter.addValueUpdateListener(_parameter1 ->
+                                              {
+                                                  text_field.setText(_parameter1.getStringValue());
+                                              });
+
+            _parameter.addUpdateListener(_parameter1 -> {
+                // set label
+                label.setText(_parameter1.getLabel());
+            });
 
         }
     }
@@ -191,5 +202,11 @@ public class RCPClientTest extends JFrame implements Add, Remove, Update {
 
         System.out.println("client: removed: " + _value.getId());
         _value.dump();
+    }
+
+    @Override
+    public void parameterValueUpdated(final IParameter param) {
+//        System.out.println("client: value updated: " + param.getId());
+//        param.dump();
     }
 }

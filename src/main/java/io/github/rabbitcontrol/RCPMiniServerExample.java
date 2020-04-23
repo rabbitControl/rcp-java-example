@@ -13,6 +13,7 @@ public class RCPMiniServerExample {
         final RCPServer rabbitServer = new RCPServer();
 
         final WebsocketServerTransporterNetty transporter = new WebsocketServerTransporterNetty();
+//        final TcpServerTransporterNetty transporter = new TcpServerTransporterNetty();
 
         rabbitServer.addTransporter(transporter);
 
