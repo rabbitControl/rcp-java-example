@@ -64,7 +64,7 @@ public class RCPClientTest extends JFrame implements Add, Remove, Update, ValueU
         transporter.connect(HOST, PORT);
 
         // init
-//        rcp.initialize();
+        rcp.initialize();
     }
 
     private void setupFrame() {

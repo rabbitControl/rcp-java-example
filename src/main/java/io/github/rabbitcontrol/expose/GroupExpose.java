@@ -1,6 +1,7 @@
 package io.github.rabbitcontrol.expose;
 
 import org.rabbitcontrol.rcp.RCPServer;
+import org.rabbitcontrol.rcp.model.exceptions.RCPException;
 import org.rabbitcontrol.rcp.model.exceptions.RCPParameterException;
 import org.rabbitcontrol.rcp.model.parameter.*;
 import org.rabbitcontrol.rcp.model.types.ImageDefinition;
@@ -12,6 +13,12 @@ import java.io.File;
 import java.io.IOException;
 
 public class GroupExpose {
+
+    public static void exposeEmptyGroup(final RCPServer rabbit) throws RCPParameterException
+    {
+        final GroupParameter group_parameter = rabbit.createGroupParameter("Empty Group");
+        group_parameter.setDescription("This is an empty group");
+    }
 
     public static void exposeParameterInGroups1(final RCPServer rabbit) throws RCPParameterException {
 
@@ -120,6 +127,11 @@ public class GroupExpose {
         //RGB color
         final RGBParameter color_parameter = rabbit.createRGBParameter("a color", group_parameter);
         color_parameter.setValue(Color.CYAN);
+        final RGBAParameter color_parameter1 = rabbit.createRGBAParameter("a color with alpha",
+                                                                         group_parameter);
+        color_parameter1.setValue(Color.YELLOW);
+        final RGBAParameter color_parameter2 = rabbit.createRGBAParameter("color A");
+        color_parameter2.setValue(Color.ORANGE);
 
         // string
         final StringParameter string_parameter = rabbit.createStringParameter("a string");
@@ -199,5 +211,73 @@ public class GroupExpose {
         // move parameter to other group
         rabbit.addParameter(group_1, float_parameter_1);
         rabbit.addParameter(group_2, flat_parameter_2);
+    }
+
+
+    public static void exposeParameterChangeParent(final RCPServer rabbit) throws
+                                                                                  RCPParameterException
+    {
+        final GroupParameter group1 = rabbit.createGroupParameter("group1");
+        rabbit.createStringParameter("string", group1);
+
+        final GroupParameter group2 = rabbit.createGroupParameter("group2");
+        rabbit.createFloat32Parameter("float", group2);
+
+        final BooleanParameter boolParam = rabbit.createBooleanParameter("boolean");
+
+        final int[] state = { 0 };
+
+        Thread t = new Thread(() -> {
+
+            try {
+                Thread.sleep(5000);
+            }
+            catch (InterruptedException _e) {
+                _e.printStackTrace();
+            }
+
+            for (;;)
+            {
+                try {
+                    Thread.sleep(500);
+
+                    switch (state[0])
+                    {
+                        case 0:
+                            //System.out.println("move parameter to group1");
+                            boolParam.setParent(group1);
+                            state[0] = 1;
+                            break;
+                        case 1:
+                            //System.out.println("move parameter to group2");
+                            boolParam.setParent(group2);
+                            state[0] = 2;
+                            break;
+                        case 2:
+                            //System.out.println("move parameter to root");
+                            boolParam.setParent(null);
+                            state[0] = 0;
+                            break;
+                    }
+
+                    rabbit.update();
+                }
+                catch (InterruptedException | RCPException _e) {
+                    _e.printStackTrace();
+                    break;
+                }
+            }
+
+        });
+
+        t.start();
+    }
+
+    public static void exposeGroupTooLate(final RCPServer rabbit) throws
+                                                                           RCPParameterException
+    {
+
+
+
     }
 }

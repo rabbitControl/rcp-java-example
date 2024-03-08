@@ -1,17 +1,25 @@
 package io.github.rabbitcontrol;
 
 import io.github.rabbitcontrol.expose.*;
+import org.rabbitcontrol.rcp.RCP;
 import org.rabbitcontrol.rcp.RCPServer;
 import org.rabbitcontrol.rcp.model.RCPCommands.Init;
 import org.rabbitcontrol.rcp.model.RCPCommands.Update;
 import org.rabbitcontrol.rcp.model.exceptions.RCPException;
 import org.rabbitcontrol.rcp.model.exceptions.RCPParameterException;
 import org.rabbitcontrol.rcp.model.interfaces.IParameter;
+import org.rabbitcontrol.rcp.transport.ServerTransporter;
+import org.rabbitcontrol.rcp.transport.tcp.server.TcpServerTransporterNetty;
+import org.rabbitcontrol.rcp.transport.websocket.server.RabbitHoleWsServerTransporterNetty;
 import org.rabbitcontrol.rcp.transport.websocket.server.WebsocketServerTransporterNetty;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * start with
@@ -21,11 +29,21 @@ public class RCPServerTest implements Update, Init {
 
     public static final int DEFAULT_PORT = 10000;
 
+    enum TransportType {
+        udp, tcp, web
+    }
+
+    final static List<TransportType> transporterTypes = new ArrayList<>();
+
     //------------------------------------------------------------
     //
     public static void main(final String[] args) {
 
+        System.out.println("using library version: " + RCP.getLibraryVersion());
+        System.out.println("implementing rcp version: " + RCP.getRcpVersion());
+
         String expose_method_name = null;
+        String rabbithole_url = null;
 
         int port = DEFAULT_PORT;
 
@@ -40,7 +58,7 @@ public class RCPServerTest implements Update, Init {
                     expose_method_name = args[i];
                 }
 
-            } else if ("-m".equals(arg)) {
+            } else if ("-m".equals(arg) || "--list".equals(arg) || "-l".equals(arg)) {
 
                 System.out.println("available method names:");
 
@@ -65,12 +83,17 @@ public class RCPServerTest implements Update, Init {
                 // print help
                 System.out.println("valid arguments: ");
                 System.out.println();
-                System.out.println("--help, -h\t\t\tshow this help");
-                System.out.println("-m\t\t\t\tprints a list with available method-names");
-                System.out.println("--config, -c <method-name>\tmethod to call on start to expose" +
+                System.out.println("--help, -h\t\t\t\tshow this help");
+                System.out.println("-m, -l, --list\t\t\t\tprints a list with available " +
+                                   "method-names");
+                System.out.println("--config, -c <method-name>\t\tmethod to call on start to expose" +
                                    " " +
                                    "parameters");
-                System.out.println("-p <port>\t\t\tthe port to bind to");
+                System.out.println("-p <port>\t\t\t\tthe port to bind to");
+                System.out.println("-t \t\t\t\t\tuse tcp transporter (websocket otherwise)");
+                System.out.println("-u \t\t\t\t\tuse udp transporter (websocket otherwise)");
+                System.out.println("--rabbithole, -r <rabbithole uri> \trabbithole " +
+                                   "uri containing a valid key");
 
                 return;
 
@@ -81,11 +104,23 @@ public class RCPServerTest implements Update, Init {
                     port = Integer.parseInt(args[i]);
                     System.out.println("setting port: " + port);
                 }
+            } else if ("-w".equals(arg)) {
+                transporterTypes.add(RCPServerTest.TransportType.web);
+            } else if ("-t".equals(arg)) {
+                transporterTypes.add(RCPServerTest.TransportType.tcp);
+            } else if ("-u".equals(arg)) {
+                transporterTypes.add(RCPServerTest.TransportType.udp);
+            }
+            else if ("--rabbithole".equals(arg) || "-r".equals(arg)) {
+                i++;
+                if (i <args.length) {
+                    rabbithole_url = args[i];
+                }
             }
         }
 
         try {
-            new RCPServerTest(expose_method_name, port);
+            new RCPServerTest(expose_method_name, port, rabbithole_url);
         }
         catch (final RCPException | RCPParameterException _e) {
             _e.printStackTrace();
@@ -95,25 +130,79 @@ public class RCPServerTest implements Update, Init {
 
     //------------------------------------------------------------
     //
-    private final RCPServer rabbit;
+    private RCPServer rabbit = null;
 
     //------------------------------------------------------------
     //
-    public RCPServerTest(final String exposeMethodName, final int port) throws
-                                                                        RCPException,
-                                                                        RCPParameterException {
-
-        final WebsocketServerTransporterNetty transporter = new WebsocketServerTransporterNetty();
-//        final TcpServerTransporterNetty transporter = new TcpServerTransporterNetty();
+    public RCPServerTest(final String exposeMethodName,
+                         int port,
+                         final String rabbitholeUrl) throws RCPException,
+                                                     RCPParameterException
+    {
+//        RCP.doDebgLogging = true;
 
         // create rabbit
-        rabbit = new RCPServer(transporter);
+        rabbit = new RCPServer();
+
+        // add transporter
+        // default to websocket
+        if (transporterTypes.isEmpty())
+        {
+            transporterTypes.add(TransportType.web);
+        }
+
+        for (TransportType tt : transporterTypes)
+        {
+            ServerTransporter transporter = null;
+
+            if (tt == TransportType.web)
+            {
+                System.out.println("adding websocket transporter on port: " + port);
+                transporter = new WebsocketServerTransporterNetty();
+            }
+            else if (tt == TransportType.tcp)
+            {
+                System.out.println("adding tcp transporter on port: " + port);
+                transporter = new TcpServerTransporterNetty();
+            }
+            else if (tt == TransportType.udp)
+            {
+                System.out.println("not adding udp transporter on port: " + port);
+                continue;
+            }
+
+            rabbit.addTransporter(transporter);
+            transporter.bind(port);
+            port++;
+        }
+
         rabbit.setApplicationId("java-test-server");
 
         rabbit.setUpdateListener(this);
         rabbit.setInitListener(this);
 
-        transporter.bind(port);
+        // rabbithole transporter
+        if ((rabbitholeUrl != null) && !rabbitholeUrl.isEmpty())
+        {
+            try {
+                System.out.println("create rabbithole transporter");
+
+                final URI url = new URI(rabbitholeUrl);
+
+                RabbitHoleWsServerTransporterNetty rhlTransporter =
+                        new RabbitHoleWsServerTransporterNetty(url);
+
+                rabbit.addTransporter(rhlTransporter);
+                rhlTransporter.bind(0);
+
+//                rhlTransporter.addListener((_bytes, _serverTransporter, _o) -> {
+//                    System.out.println("rhl received: " + ParserTest.bytesToHex(_bytes));
+//                });
+            }
+            catch (URISyntaxException _e) {
+                _e.printStackTrace();
+            }
+        }
 
         //------------------------------------------------------------
         //------------------------------------------------------------
@@ -131,21 +220,13 @@ public class RCPServerTest implements Update, Init {
                 System.exit(1);
             }
         } else {
-            System.out.println("no expose method defined - use some hardcoded values");
+            System.out.println("no expose method defined - using exposeParameterInGroups");
             exposeParameterInGroups();
-//            exposeColorParameters();
-//            exposeIntParameterRandom();
-//            exposeParameterChangeLabel();
         }
-
 
         rabbit.update();
     }
 
-
-    private void exposeVectorParameter() throws RCPParameterException {
-        VectorParameterExpose.exposeVectorParameter(rabbit);
-    }
 
     private void exposeFaultyParameter() throws RCPParameterException {
         NumberParameterExpose.exposeFaultyFloat(rabbit);
@@ -153,6 +234,10 @@ public class RCPServerTest implements Update, Init {
 
     private void exposeImageParameter() throws RCPParameterException {
         ImageParameterExpose.exposeImageParameter(rabbit);
+    }
+
+    private void exposeManyImageParameter() throws RCPParameterException {
+        ImageParameterExpose.exposeManyImageParameter(rabbit);
     }
 
     private void exposeBooleanReadonly() throws RCPParameterException {
@@ -223,10 +308,22 @@ public class RCPServerTest implements Update, Init {
         NumberParameterExpose.exposeOutOfBoundFloat(rabbit);
     }
 
+    //--------------------------------------------
+    // vector parameters
+    private void exposeVectorParameter() throws RCPParameterException {
+        VectorParameterExpose.exposeVectorParameter(rabbit);
+    }
+
     private void exposeVectorParameterOutOfBounds() throws RCPParameterException {
         VectorParameterExpose.exposeVectorParameterOutOfBounds(rabbit);
     }
 
+    private void exposeVectorParameterMinMax() throws RCPParameterException {
+        VectorParameterExpose.exposeVectorParameterMinMax(rabbit);
+    }
+
+    //--------------------------------------------
+    //
     private void exposeByte() throws RCPParameterException {
         NumberParameterExpose.exposeByte(rabbit);
     }
@@ -239,18 +336,59 @@ public class RCPServerTest implements Update, Init {
         NumberParameterExpose.exposeInt32(rabbit);
     }
 
-    private void exportForCImpl() throws RCPParameterException {
+    private void exposeForCImpl() throws RCPParameterException {
 
         System.out.println("export for C");
         NumberParameterExpose.exposeForCImpl(rabbit);
     }
 
-    private void exposeParameterChangeLabel() throws RCPParameterException {
+    private void exposeForCImplAutoChange() throws RCPParameterException
+    {
+        System.out.println("export for C");
+        ParameterAutoChange.exposeForCImpl(rabbit);
+    }
 
+    private void exposeParameterChangeLabel() throws RCPParameterException
+    {
         ParameterAutoChange.exposeParameterChangeLabel(rabbit);
     }
 
+    private void exposeParameterChangeMinMaxVal() throws RCPParameterException
+    {
+        ParameterAutoChange.exposeParameterChangeMinMaxVal(rabbit);
+    }
 
+
+    private void exposeEmptyGroup() throws RCPParameterException {
+        GroupExpose.exposeEmptyGroup(rabbit);
+    }
+
+
+
+    private void exposeGroupAsTabs() throws RCPParameterException
+    {
+        WidgetExpose.exposeGroupAsTabs(rabbit);
+    }
+
+    private void exposeParameterChangeParent() throws RCPParameterException
+    {
+        GroupExpose.exposeParameterChangeParent(rabbit);
+    }
+
+    private void exposeEnum() throws RCPParameterException
+    {
+        EnumParameterExpose.exposeEnum(rabbit);
+    }
+
+    private void exposeDynamicEnums() throws RCPParameterException
+    {
+        EnumParameterExpose.exposeDynamicEnums(rabbit);
+    }
+
+    private void exposeOneGroupAsTabs() throws RCPParameterException
+    {
+        WidgetExpose.exposeOneGroupAsTabs(rabbit);
+    }
 
 
 

@@ -72,7 +72,7 @@ public class ParserTest {
 
     }
 
-    private static String bytesToHex(final byte[] in) {
+    public static String bytesToHex(final byte[] in) {
 
         final StringBuilder builder = new StringBuilder();
         for (final byte b : in) {

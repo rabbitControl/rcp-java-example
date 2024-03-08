@@ -51,7 +51,7 @@ public class NumberParameterExpose {
 
         for (int i = 0; i <1; i++) {
 
-            final Float64Parameter parameter = rabbit.createFloat64Parameter("FLOAT", group);
+            final Float64Parameter parameter = rabbit.createFloat64Parameter("FLOAT64", group);
             parameter.setValue(123.D);
             parameter.getTypeDefinition().setMinimum(0.D);
             parameter.getTypeDefinition().setMaximum(200.D);

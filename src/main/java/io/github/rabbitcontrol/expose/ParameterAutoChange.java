@@ -84,4 +84,80 @@ public class ParameterAutoChange {
         t.start();
 
     }
+
+    public static void exposeParameterChangeMinMaxVal(final RCPServer rabbit) throws RCPParameterException {
+
+        final Int8Parameter parameter = rabbit.createInt8Parameter("number");
+
+        Thread t = new Thread(() -> {
+
+            while (!Thread.interrupted())
+            {
+                try {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException _e) {
+                    break;
+                }
+
+                int rnd = (int)(Math.random()*50);
+                int rnd2 = rnd + 20;
+
+                // set datatype
+                parameter.getTypeDefinition().setMinimum((byte)rnd);
+                parameter.getTypeDefinition().setMaximum((byte)rnd2);
+
+                // set parameter
+                parameter.setValue((byte)(rnd + 10));
+
+                try {
+                    rabbit.update();
+                }
+                catch (RCPException _e) {
+                    _e.printStackTrace();
+                }
+            }
+        });
+        t.start();
+
+    }
+
+    public static void exposeForCImpl(final RCPServer rabbit) throws RCPParameterException {
+
+        final BooleanParameter bool_parameter = rabbit.createBooleanParameter("bool");
+
+        final Int8Parameter int8_parameter = rabbit.createInt8Parameter("int 8");
+        int8_parameter.setValue((byte)8);
+
+        final Int32Parameter int_parameter = rabbit.createInt32Parameter("int 1");
+        int_parameter.setMinimum(0);
+        int_parameter.setMaximum(100);
+        int_parameter.setValue(10);
+
+
+        Thread t = new Thread(() -> {
+
+            while (!Thread.interrupted())
+            {
+                try {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException _e) {
+                    break;
+                }
+
+                byte i = (byte)(Math.random()*100);
+                System.out.println("setting: " + i);
+                int8_parameter.setValue(i);
+                try {
+                    rabbit.update();
+                }
+                catch (RCPException _e) {
+                    _e.printStackTrace();
+                }
+            }
+        });
+        t.start();
+
+    }
 }
