@@ -1,4 +1,4 @@
-package io.github.rabbitcontrol;
+package cc.rabbitcontrol;
 
 import org.rabbitcontrol.rcp.RCPClient;
 import org.rabbitcontrol.rcp.model.RCPCommands.*;

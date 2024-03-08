@@ -1,4 +1,4 @@
-package io.github.rabbitcontrol;
+package cc.rabbitcontrol;
 
 import org.rabbitcontrol.rcp.RCPServer;
 import org.rabbitcontrol.rcp.model.exceptions.RCPException;

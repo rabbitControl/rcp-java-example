@@ -1,4 +1,4 @@
-package io.github.rabbitcontrol.expose;
+package cc.rabbitcontrol.expose;
 
 import org.rabbitcontrol.rcp.RCPServer;
 import org.rabbitcontrol.rcp.model.Widget;

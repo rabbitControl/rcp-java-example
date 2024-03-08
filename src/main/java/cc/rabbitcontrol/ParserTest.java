@@ -1,4 +1,4 @@
-package io.github.rabbitcontrol;
+package cc.rabbitcontrol;
 
 import org.rabbitcontrol.rcp.model.Packet;
 import org.rabbitcontrol.rcp.model.RCPParser;

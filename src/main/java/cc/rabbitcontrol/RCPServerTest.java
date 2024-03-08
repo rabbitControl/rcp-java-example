@@ -1,6 +1,6 @@
-package io.github.rabbitcontrol;
+package cc.rabbitcontrol;
 
-import io.github.rabbitcontrol.expose.*;
+import cc.rabbitcontrol.expose.*;
 import org.rabbitcontrol.rcp.RCP;
 import org.rabbitcontrol.rcp.RCPServer;
 import org.rabbitcontrol.rcp.model.RCPCommands.Init;

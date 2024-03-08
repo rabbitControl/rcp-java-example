@@ -1,4 +1,4 @@
-package io.github.rabbitcontrol.expose;
+package cc.rabbitcontrol.expose;
 
 import org.rabbitcontrol.rcp.RCPServer;
 import org.rabbitcontrol.rcp.model.RcpTypes.Datatype;
@@ -15,7 +15,7 @@ public class ArrayParameterExpose {
                 "String Array",
                 Datatype.STRING,
                 3);
-        array_parameter_1.setValue(new String[] { "io/github/rabbitcontrol", "string", "array" });
+        array_parameter_1.setValue(new String[] {"cc/rabbitcontrol", "string", "array" });
 
         //--------------------------------------------
         // expose one-dimensional array of doubles with 6 elements
