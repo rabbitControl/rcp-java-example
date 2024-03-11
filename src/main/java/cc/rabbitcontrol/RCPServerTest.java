@@ -46,19 +46,33 @@ public class RCPServerTest implements Update, Init {
         String rabbithole_url = null;
 
         int port = DEFAULT_PORT;
+        int instances = 1;
 
         for (int i = 0; i < args.length; i++) {
 
             final String arg = args[i];
 
-            if ("--config".equals(arg) || "-c".equals(arg)) {
-                i++;
-                if (i <args.length) {
-                    System.out.println("setting expose method name to: " + args[i]);
-                    expose_method_name = args[i];
-                }
+            if ("-h".equals(arg) || "--help".equals(arg)) {
 
-            } else if ("-m".equals(arg) || "--list".equals(arg) || "-l".equals(arg)) {
+                // print help
+                System.out.println("valid arguments: ");
+                System.out.println();
+                System.out.println("--help, -h\t\t\t\tshow this help");
+                System.out.println("-l, --list\t\t\t\tprints a list with available " +
+                        "method-names");
+                System.out.println("--config, -c <method-name>\t\tmethod to call on start to expose" +
+                        " " +
+                        "parameters");
+                System.out.println("-p <port>\t\t\t\tthe port to bind to");
+                System.out.println("-t \t\t\t\t\tuse tcp transporter (websocket otherwise)");
+                System.out.println("-u \t\t\t\t\tuse udp transporter (websocket otherwise)");
+                System.out.println("--rabbithole, -r <rabbithole uri> \trabbithole " +
+                        "uri containing a valid key");
+                System.out.println("-n \t\t\t\t\tstart server n-times using the same configuration. the port is increased for each instance");
+
+                return;
+
+            } else if ("--list".equals(arg) || "-l".equals(arg)) {
 
                 System.out.println("available method names:");
 
@@ -67,8 +81,8 @@ public class RCPServerTest implements Update, Init {
                 for (final Method method : methods) {
                     final Class<?>[] ex_types = method.getExceptionTypes();
                     if (!method.getName().startsWith("_") &&
-                        Arrays.toString(ex_types).contains
-                            ("RCPParameterException"))
+                            Arrays.toString(ex_types).contains
+                                    ("RCPParameterException"))
                     {
                         System.out.println(method.getName());
                     }
@@ -78,31 +92,42 @@ public class RCPServerTest implements Update, Init {
 
                 return;
 
-            } else if ("-h".equals(arg) || "--help".equals(arg)) {
+            } else if ("--config".equals(arg) || "-c".equals(arg)) {
+                i++;
 
-                // print help
-                System.out.println("valid arguments: ");
-                System.out.println();
-                System.out.println("--help, -h\t\t\t\tshow this help");
-                System.out.println("-m, -l, --list\t\t\t\tprints a list with available " +
-                                   "method-names");
-                System.out.println("--config, -c <method-name>\t\tmethod to call on start to expose" +
-                                   " " +
-                                   "parameters");
-                System.out.println("-p <port>\t\t\t\tthe port to bind to");
-                System.out.println("-t \t\t\t\t\tuse tcp transporter (websocket otherwise)");
-                System.out.println("-u \t\t\t\t\tuse udp transporter (websocket otherwise)");
-                System.out.println("--rabbithole, -r <rabbithole uri> \trabbithole " +
-                                   "uri containing a valid key");
+                if (i <args.length) {
+                    System.out.println("setting expose method name to: " + args[i]);
+                    expose_method_name = args[i];
+                }
 
-                return;
+            } else if ("-n".equals(arg)) {
+                i++;
 
+                if (i <args.length) {
+                    instances = Integer.parseInt(args[i]);
+                    if (instances <= 0)
+                    {
+                        System.out.println("invalid instance setting - default to 1 instance");
+                        instances = 1;
+                    }
+                    else {
+                        System.out.println("setting instances: " + instances);
+                    }
+                }
             } else if ("-p".equals(arg)) {
                 i++;
 
                 if (i <args.length) {
                     port = Integer.parseInt(args[i]);
-                    System.out.println("setting port: " + port);
+                    if (port <= 0)
+                    {
+                        System.out.println("invalid port setting - default to " + DEFAULT_PORT);
+                        port = DEFAULT_PORT;
+                    }
+                    else
+                    {
+                        System.out.println("setting port: " + port);
+                    }
                 }
             } else if ("-w".equals(arg)) {
                 transporterTypes.add(RCPServerTest.TransportType.web);
@@ -119,13 +144,24 @@ public class RCPServerTest implements Update, Init {
             }
         }
 
-        try {
-            new RCPServerTest(expose_method_name, port, rabbithole_url);
-        }
-        catch (final RCPException | RCPParameterException _e) {
-            _e.printStackTrace();
+        if (instances > 1)
+        {
+            System.out.println("starting " + instances + " instances");
         }
 
+        int port_increase = transporterTypes.isEmpty() ? 1 : transporterTypes.size();
+
+        for (int i=0; i<instances; i++)
+        {
+            try {
+                new RCPServerTest(expose_method_name, port, rabbithole_url);
+            }
+            catch (final RCPException | RCPParameterException _e) {
+                _e.printStackTrace();
+            }
+
+            port += port_increase;
+        }
     }
 
     //------------------------------------------------------------
