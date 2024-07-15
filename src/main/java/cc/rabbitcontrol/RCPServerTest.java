@@ -426,6 +426,13 @@ public class RCPServerTest implements Update, Init {
         WidgetExpose.exposeOneGroupAsTabs(rabbit);
     }
 
+    private void exposeIpV4Parameter() throws RCPParameterException {
+        IpParameterExpose.exposeIpV4Parameter(rabbit);
+    }
+
+    private void exposeCustomParameter() throws RCPParameterException {
+        CustomParameterExpose.exposeCustom(rabbit);
+    }
 
 
     //------------------------------------------------------------
