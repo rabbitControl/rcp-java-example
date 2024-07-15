@@ -47,6 +47,7 @@ public class RCPServerTest implements Update, Init {
 
         int port = DEFAULT_PORT;
         int instances = 1;
+        boolean sendPong = false;
 
         for (int i = 0; i < args.length; i++) {
 
@@ -69,6 +70,7 @@ public class RCPServerTest implements Update, Init {
                 System.out.println("--rabbithole, -r <rabbithole uri> \trabbithole " +
                         "uri containing a valid key");
                 System.out.println("-n \t\t\t\t\tstart server n-times using the same configuration. the port is increased for each instance");
+                System.out.println("--pong \t\t\t\tanswer (empty) ping messages with an (empty) pong (only applies to tcp-transporter)");
 
                 return;
 
@@ -142,6 +144,9 @@ public class RCPServerTest implements Update, Init {
                     rabbithole_url = args[i];
                 }
             }
+            else if ("--pong".equals(arg)) {
+                sendPong = true;
+            }
         }
 
         if (instances > 1)
@@ -154,7 +159,7 @@ public class RCPServerTest implements Update, Init {
         for (int i=0; i<instances; i++)
         {
             try {
-                new RCPServerTest(expose_method_name, port, rabbithole_url);
+                new RCPServerTest(expose_method_name, port, rabbithole_url, sendPong);
             }
             catch (final RCPException | RCPParameterException _e) {
                 _e.printStackTrace();
@@ -172,7 +177,8 @@ public class RCPServerTest implements Update, Init {
     //
     public RCPServerTest(final String exposeMethodName,
                          int port,
-                         final String rabbitholeUrl) throws RCPException,
+                         final String rabbitholeUrl,
+                         final boolean sendPong) throws RCPException,
                                                      RCPParameterException
     {
 //        RCP.doDebgLogging = true;
@@ -199,7 +205,9 @@ public class RCPServerTest implements Update, Init {
             else if (tt == TransportType.tcp)
             {
                 System.out.println("adding tcp transporter on port: " + port);
-                transporter = new TcpServerTransporterNetty();
+                final TcpServerTransporterNetty t = new TcpServerTransporterNetty();
+                t.setSendPong(sendPong);
+                transporter = t;
             }
             else if (tt == TransportType.udp)
             {
